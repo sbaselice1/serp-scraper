@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
@@ -22,18 +21,12 @@ from pyxlsb import open_workbook as open_xlsb
 
 # TITLE FOR APP
 
-st.title('Google PAA & Related Search Finder')
-st.subheader('Find the most frequent PAAs and Related Searches for a given set of keywords.')
+st.title('Advanced Organic Marketing Intelligence')
+st.subheader('Find all PAAs and Related Searches for your target set of keywords.')
 
 
 # SET USER AGENT LIST
-user_agent_list = ['Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36',
-                   'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
-                   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.1.1 Safari/605.1.15']
-
-
-# Full list of just the User Agent to rotate into loop
-#user_agent_list = [
+user_agent_list = [
 #'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.1.1 Safari/605.1.15',
 #'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:77.0) Gecko/20100101 Firefox/77.0',
 #'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36',
@@ -44,7 +37,7 @@ user_agent_list = ['Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
 
 # Wait for FILE UPLOAD
 
-st.write('Upload a an excel or csv file with two columns (Keyword and Search Volume) containing your list of keywords and their search volume')
+st.write('Create a file with the Keyword and Search Volume in the first two columns. Downloading from SEMRush or Ahrefs is a good idea.')
 
 file = st.file_uploader("Select your file.")
 
@@ -173,76 +166,31 @@ df_related = df_related_scrape.transpose()
 df_div = pd.DataFrame.from_dict(paa_div_capture, orient='index')
 df_div.transpose()
 
-
-# In[24]:
-
-
 # Merge the scrape data with the input data to get the volume
 paa_merge = df_paa.merge(df, how='left', on='Keyword')
-
-
-# In[25]:
-
-
-# clean it up, we don't need the google urls
+# cleans the data
 paa_final = paa_merge.drop(['Google_URL_y', 'Google_URL_x'], axis=1).rename(columns={'Volume_y':'Volume'})
 
-
-# In[26]:
-
-
-print('Building top PAA with total search volume...')
-
-
-# In[27]:
-
-
-paa_final
-
-
-# In[28]:
-
+print('Your results are being generated right now...')
 
 #Pivot PAAs to find the top amongst the set
 paa_pivot = paa_final.groupby('People_Also_Ask').agg({'Volume': ['sum','count']}).sort_values(by=[('Volume', 'sum')], ascending=False)
 
-
-# In[35]:
-
-
-paa_pivot
-
-
-# In[29]:
-
+st.write(paa_pivot)
 
 # Merge the Related Searches with input to get volume
 related_merge = df_related.merge(df, how='left', on='Keyword')
 related_final = related_merge.drop(['Google_URL_y', 'Google_URL_x'], axis=1).rename(columns={'Volume_y':'Volume'})
 
-
-
-
 st.write(related_final)
-
-
-
-
 
 print('Building top Related Searches with total search volume...')
 
-
-
-
-
-# pivot the related searches to get the top amonst the set
+  # pivot the related searches to get the top amonst the set
 related_pivot = related_final.groupby('Related_Search').agg({'Volume': ['sum','count']}).sort_values(by=[('Volume', 'sum')], ascending=False)
 
 
-
-
-
-related_pivot
+st.write(related_pivot)
 
 @st.cache
 def download(df):
@@ -269,44 +217,7 @@ st.download_button(label='📥 Download Current Result',
                                    data=xlsx ,
                                    file_name=path)
 
-    
-    
-    
-# def to_excel(df):
-#     output = BytesIO()
-#     writer = pd.ExcelWriter(output, engine='xlsxwriter')
-#     paa_pivot.to_excel(writer, sheet_name = 'top_paas')
-#     related_pivot.to_excel(writer, sheet_name = 'top_related_searches')
-#     paa_final.to_excel(writer, sheet_name = 'paas_all')
-#     related_final.to_excel(writer, sheet_name = 'related_searches_all')
-#     df_div.to_excel(writer, sheet_name = 'scrape_data')
-#     workbook = writer.book
-#     worksheet = writer.sheets['Sheet1']
-#     format1 = workbook.add_format({'num_format': '0.00'}) 
-#     worksheet.set_column('A:A', None, format1)  
-#     writer.save()
-#     processed_data = output.getvalue()
-#     return processed_data
 
-# xlsx = to_excel(df)
-# st.download_button(label='📥 Download Current Result',
-#                                 data=xlsx ,
-#                                 file_name= 'df_test.xlsx')
-
-
-
-# current_path = os.getcwd()
-# current_time = time.strftime("%m%d%y_%H%M%S")
-# path = str(current_path) + '\serp_scraper_results_' + str(current_time) + '.xlsx'
-# writer = pd.ExcelWriter(path, engine = 'xlsxwriter')
-# paa_pivot.to_excel(writer, sheet_name = 'top_paas')
-# related_pivot.to_excel(writer, sheet_name = 'top_related_searches')
-# paa_final.to_excel(writer, sheet_name = 'paas_all')
-# related_final.to_excel(writer, sheet_name = 'related_searches_all')
-# df_div.to_excel(writer, sheet_name = 'scrape_data')
-# writer.close()
-
-# file_saved = glob.glob(path)
 
 
 
